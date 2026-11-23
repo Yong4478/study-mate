@@ -1,4 +1,6 @@
 # 📚 스터디 메이트 — 내 공부 기록을 아는 AI 코치
+https://study-mate-frontend-nu.vercel.app
+
 
 > **AI Agent 개발: 나만의 AI 비서 구축** 과제 결과물
 > 하루 공부 시간(분)을 기록하면, AI가 **내 기록 요약을 보고** 맞춤형으로 답해주는 웹 서비스
@@ -394,6 +396,8 @@ AI는 우리 DB에 직접 접근하지 못하지만, 매 요청마다 **요약�
 
 **대화 예시** (샘플 데이터 기준, 실제 문구는 모델마다 다름)
 
+<img width="1476" height="896" alt="작동 확인 증명사진" src="https://github.com/user-attachments/assets/4e1d859a-d675-4a2e-90cb-2e9c9ab6de38" />
+
 > 👤 이번 달 공부 얼마나 했어?
 > 🤖 11월에는 22일 동안 2,825분(약 47시간) 공부했고, 하루 평균 128분이에요. 10월 하루 평균(108분)보다 약 19% 늘었어요! 다만 최근 7개 기록 평균은 114분으로 직전 주보다 줄었으니, 이번 주는 하루 2시간 목표로 페이스를 다시 올려봐요.
 >
@@ -529,19 +533,13 @@ STUDY_MATE_API_URL=https://내-백엔드.onrender.com npx @modelcontextprotocol/
 
 ## 15. 제출 스크린샷
 
-> 배포한 사이트에서 직접 캡처해서 `docs/screenshots/` 에 같은 이름으로 저장하세요.
 
-| 화면 | 캡처 방법 | 파일 |
-|---|---|---|
-| 데이터 요약이 보이는 채팅 화면 (질문+답변) | 채팅 탭에서 "이번 달 공부 얼마나 했어?" 질문 → 왼쪽 요약 카드와 답변이 함께 보이게 | `docs/screenshots/chat.png` |
-| 데이터 관리 화면 (CRUD 동작) | 데이터 관리 탭에서 기록 추가 또는 **수정** 버튼 누른 상태/저장 토스트가 보이게 | `docs/screenshots/data.png` |
-| 대화 기록 화면 (불러오기 동작) | 왼쪽 대화 기록에서 이전 대화를 클릭 → "불러온 대화 · 메시지 N개" 문구와 메시지가 보이게 | `docs/screenshots/history.png` |
-| (보너스) 통계·그래프 / 다크 모드 | 통계 탭 | `docs/screenshots/stats.png` |
 
-![채팅 화면](docs/screenshots/chat.png)
-![데이터 관리](docs/screenshots/data.png)
-![대화 기록 불러오기](docs/screenshots/history.png)
-![통계 그래프](docs/screenshots/stats.png)
+<img width="1356" height="883" alt="증빙 사진" src="https://github.com/user-attachments/assets/9f41e968-f149-41f5-842f-34f693ee7d74" />
+<img width="1374" height="912" alt="야간 모드 증빙 사진" src="https://github.com/user-attachments/assets/94b54f7a-0b6c-485e-852e-7537a7306ce3" />
+<img width="1349" height="916" alt="데이터 관리 증빙 사진" src="https://github.com/user-attachments/assets/d216a1a4-e92f-4ab8-905d-b10245029292" />
+<img width="1371" height="919" alt="통계,그래프 증빙 사진" src="https://github.com/user-attachments/assets/cd358847-fa66-4b49-9eda-eed2b29db8a6" />
+
 
 ## 16. 요구사항 체크리스트
 
