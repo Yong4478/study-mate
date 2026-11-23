@@ -14,6 +14,7 @@ from fastapi.responses import JSONResponse
 
 from core.ai_client import AIError, ai_status
 from core.rate_limit import RateLimitExceeded
+from core.token_budget import TokenBudgetExceeded
 from core.config import now_iso, settings
 from core.database import DatabaseNotConfigured
 from routers import chat, conversations, data
@@ -76,6 +77,11 @@ async def ai_error_handler(_: Request, exc: AIError):
 
 @app.exception_handler(RateLimitExceeded)
 async def rate_limit_handler(_: Request, exc: RateLimitExceeded):
+    return JSONResponse(status_code=429, content={"detail": str(exc)})
+
+
+@app.exception_handler(TokenBudgetExceeded)
+async def token_budget_handler(_: Request, exc: TokenBudgetExceeded):
     return JSONResponse(status_code=429, content={"detail": str(exc)})
 
 

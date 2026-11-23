@@ -193,6 +193,18 @@ function renderSummary(s) {
   box.appendChild(trend);
 }
 
+/** 이번 달 AI 토큰 사용량 / 한도 */
+async function loadUsage() {
+  try {
+    const u = await api("/api/usage");
+    $("#token-usage").textContent = u.enabled
+      ? `🔋 이번 달 AI 토큰: ${u.used_tokens.toLocaleString()} / ${u.limit_tokens.toLocaleString()}`
+      : `🔋 이번 달 AI 토큰: ${u.used_tokens.toLocaleString()} (한도 없음)`;
+  } catch (_) {
+    $("#token-usage").textContent = "";
+  }
+}
+
 async function loadSummary() {
   try {
     renderSummary(await api("/api/data/summary"));
@@ -269,6 +281,7 @@ async function sendMessage(text) {
     appendMessage("assistant", res.reply, { tools: res.tool_calls, notice: res.notice });
     state.conversationId = res.conversation_id;
     renderSummary(res.summary); // 답변에 주입된 요약을 그대로 표시
+    loadUsage();
     await loadConversations();
     const current = state.conversations.find((c) => c.id === state.conversationId);
     if (current) {
@@ -617,7 +630,7 @@ async function init() {
   $("#data-date").max = todayStr();
   const ok = await wakeServer();
   if (!ok) return;
-  await Promise.all([loadSummary(), loadConversations(), loadRecords()]);
+  await Promise.all([loadSummary(), loadConversations(), loadRecords(), loadUsage()]);
 }
 
 applyTheme(document.documentElement.getAttribute("data-theme") || "light");

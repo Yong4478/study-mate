@@ -1,7 +1,7 @@
 """AI 채팅 API 라우터"""
 from fastapi import APIRouter, Request
 
-from core import rate_limit
+from core import rate_limit, token_budget
 from schemas import ChatRequest, ChatResponse
 from services import chat_service
 
@@ -15,9 +15,10 @@ def chat(req: ChatRequest, request: Request):
 
     - conversation_id 를 주면 이어서 대화하고, 없으면 새 대화를 만듭니다.
     - use_tools=true 이면 (보너스) AI 가 필요할 때 내부 기능을 도구로 호출합니다.
-    - 과금 보호: 1분/하루 호출 횟수 제한 (초과 시 429)
+    - 과금 보호: 1분/하루 호출 횟수 제한, 이번 달 토큰 한도(TOKEN_LIMIT) 초과 시 429
     """
     rate_limit.check(client_ip(request))
+    token_budget.check()  # 이번 달 토큰 한도 확인
     return chat_service.chat(req)
 
 
@@ -27,3 +28,8 @@ def client_ip(request: Request) -> str:
     if forwarded:
         return forwarded.split(",")[0].strip()
     return request.client.host if request.client else "unknown"
+
+
+@router.get("/usage", summary="이번 달 AI 토큰 사용량 / 한도")
+def usage():
+    return token_budget.get_usage()

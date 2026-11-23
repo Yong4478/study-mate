@@ -25,12 +25,14 @@ def _int_env(name: str, default: int) -> int:
 class Settings:
     # ── AI (OpenAI 호환 API: 경남 코디세이 발급 키) ─────────────────────
     OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "").strip()
-    # 코디세이에서 안내받은 주소를 넣으세요. (예: https://xxx.example.com/v1)
+    # 경남 코디세이: https://copa.codyssey.kr/v1  (콘솔 > 문서 탭의 Cursor/OpenAI Base URL)
     # 비워두면 OpenAI 공식 주소(https://api.openai.com/v1)를 사용합니다.
     OPENAI_BASE_URL: str = os.getenv("OPENAI_BASE_URL", "").strip()
-    OPENAI_MODEL: str = os.getenv("OPENAI_MODEL", "gpt-4o-mini").strip()
+    OPENAI_MODEL: str = os.getenv("OPENAI_MODEL", "gpt-5-mini").strip()
     # 과금/사용량 보호: 답변 길이 상한
-    OPENAI_MAX_TOKENS: int = _int_env("OPENAI_MAX_TOKENS", 600)
+    OPENAI_MAX_TOKENS: int = _int_env("OPENAI_MAX_TOKENS", 1500)
+    # (선택) 코디세이 콘솔에서 사용량을 묶어 보기 위한 세션 헤더 값 (영문·숫자·._:- 120자 이내)
+    CODYSSEY_SESSION_ID: str = os.getenv("CODYSSEY_SESSION_ID", "").strip()
 
     # ── Firebase ──────────────────────────────────────────────
     # 둘 중 하나만 설정하면 됩니다.
@@ -58,6 +60,8 @@ class Settings:
     # 과금 보호: AI 호출 횟수 제한
     CHAT_LIMIT_PER_MINUTE: int = _int_env("CHAT_LIMIT_PER_MINUTE", 10)  # 사용자(IP)당 1분
     CHAT_LIMIT_PER_DAY: int = _int_env("CHAT_LIMIT_PER_DAY", 200)  # 서버 전체 하루
+    # 과금 보호: 이번 달 AI 토큰 사용 한도 (0 이면 제한 없음)
+    TOKEN_LIMIT: int = _int_env("TOKEN_LIMIT", 100_000)
 
 
 settings = Settings()

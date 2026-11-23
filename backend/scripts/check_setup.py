@@ -35,6 +35,10 @@ def check_firebase() -> bool:
         if not docs:
             print("   💡 데이터가 비어 있어요 → python -m scripts.seed_data 로 샘플을 넣어보세요.")
         return True
+    except ModuleNotFoundError as e:
+        print(f"   ❌ 패키지가 설치되지 않았어요: {e.name}")
+        print("   💡 가상환경을 켠 상태에서 python -m pip install -r requirements.txt 를 실행하세요.")
+        return False
     except Exception as e:
         print(f"   ❌ 실패: {e}")
         print("   💡 Firebase 콘솔에서 Firestore Database 를 '만들기' 했는지, 키 파일 경로가 맞는지 확인하세요.")
@@ -64,6 +68,10 @@ def check_ai() -> bool:
             print(f"   ℹ️  토큰 사용량: {getattr(usage, 'total_tokens', '?')}")
     except AIError as e:
         print(f"   ❌ {e.message}")
+        return False
+    except Exception as e:
+        print(f"   ❌ 예상하지 못한 오류: {type(e).__name__}: {e}")
+        print("   💡 OPENAI_BASE_URL 이 '/v1' 로 끝나는지 확인하세요.")
         return False
 
     print("\n④ (보너스) 도구 호출(Function Calling) 지원 여부")

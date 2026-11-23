@@ -75,8 +75,9 @@ git push -u origin main
 |---|---|
 | `PYTHON_VERSION` | `3.12.8` |
 | `OPENAI_API_KEY` | 코디세이 키 |
-| `OPENAI_BASE_URL` | 코디세이 API 주소 (없으면 추가하지 않기) |
-| `OPENAI_MODEL` | 예: `gpt-4o-mini` |
+| `OPENAI_BASE_URL` | `https://copa.codyssey.kr/v1` |
+| `OPENAI_MODEL` | `gpt-5-mini` |
+| `OPENAI_MAX_TOKENS` | `1500` |
 | `FIREBASE_SERVICE_ACCOUNT_JSON` | `firebase-key.json` 파일을 메모장으로 열어 **`{` 부터 `}` 까지 전부** 복사해서 붙여넣기 |
 | `ALLOWED_ORIGINS` | 일단 `http://localhost:5500` (6단계에서 Vercel 주소 추가) |
 

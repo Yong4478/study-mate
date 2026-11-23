@@ -14,14 +14,18 @@ services:
       - key: OPENAI_API_KEY
         sync: false
       - key: OPENAI_BASE_URL
-        sync: false
+        value: https://copa.codyssey.kr/v1
+      - key: CODYSSEY_SESSION_ID
+        value: study-mate
       - key: OPENAI_MODEL
-        value: gpt-4o-mini
+        value: gpt-5-mini
       - key: OPENAI_MAX_TOKENS
-        value: "600"
+        value: "1500"
       - key: FIREBASE_SERVICE_ACCOUNT_JSON
         sync: false
       - key: ALLOWED_ORIGINS
         sync: false
+      - key: TOKEN_LIMIT
+        value: "100000"
       - key: DAILY_GOAL_MINUTES
         value: "120"

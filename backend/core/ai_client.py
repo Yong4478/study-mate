@@ -5,8 +5,8 @@ AI 호출 전용 모듈 (OpenAI 호환 API).
 그래서 openai 라이브러리를 그대로 쓰고, 아래 3가지만 환경 변수로 바꿔 끼우면 됩니다.
 
     OPENAI_API_KEY   = 코디세이에서 받은 키
-    OPENAI_BASE_URL  = 코디세이에서 안내받은 API 주소 (OpenAI 공식 키라면 비워두기)
-    OPENAI_MODEL     = 사용할 모델 이름 (예: gpt-4o-mini)
+    OPENAI_BASE_URL  = https://copa.codyssey.kr/v1  (OpenAI 공식 키라면 비워두기)
+    OPENAI_MODEL     = 사용할 모델 ID (예: gpt-5-mini)
 
 다른 파일에서는 chat_completion(messages) 하나만 부르면 됩니다.
 """
@@ -23,6 +23,7 @@ from openai import (
     RateLimitError,
 )
 
+from core import token_budget
 from core.config import settings
 
 _client = None
@@ -70,6 +71,8 @@ def get_client() -> OpenAI:
         kwargs ={"api_key": settings.OPENAI_API_KEY, "timeout": 60, "max_retries": 1}
         if settings.OPENAI_BASE_URL:
             kwargs["base_url"] = normalize_base_url(settings.OPENAI_BASE_URL)
+        if settings.CODYSSEY_SESSION_ID:
+            kwargs["default_headers"] = {"X-Codyssey-Session-Id": settings.CODYSSEY_SESSION_ID[:120]}
         _client = OpenAI(**kwargs)
     return _client
 
@@ -140,9 +143,11 @@ def chat_completion(messages: list[dict], tools: list[dict] | None = None, tool_
         )
     if not response.choices:
         raise AIError("AI 서버가 빈 응답을 보냈습니다.", "server")
+    usage = getattr(response, "usage", None)
+    token_budget.add(getattr(usage, "total_tokens", None))  # 이번 달 토큰 사용량 누적
     choice = response.choices[0]
     message = choice.message
     if not message.content and not getattr(message, "tool_calls", None):
         hint = " (OPENAI_MAX_TOKENS 를 늘려보세요)" if choice.finish_reason == "length" else ""
         message.content = f"답변을 만들지 못했어요{hint}. 다시 질문해 주세요."
-    return message, getattr(response, "usage", None)
+    return message, usage

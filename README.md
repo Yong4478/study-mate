@@ -81,7 +81,8 @@ study-mate/
 │   │   ├── config.py            # 환경 변수 읽기
 │   │   ├── database.py          # Firestore 연결
 │   │   ├── ai_client.py         # ★ 코디세이(OpenAI 호환) AI 호출 - 여기 한 곳만 담당
-│   │   └── rate_limit.py        # AI 호출 횟수 제한 (과금 보호)
+│   │   ├── rate_limit.py        # AI 호출 횟수 제한 (과금 보호)
+│   │   └── token_budget.py      # 월 토큰 한도 (Firestore 에 누적)
 │   ├── routers/                 # "주소"만 담당 (얇게)
 │   │   ├── data.py              # /api/data ...
 │   │   ├── conversations.py     # /api/conversations ...
@@ -172,14 +173,16 @@ python -m http.server 5500
 | 이름 | 필수 | 설명 | 예시 |
 |---|---|---|---|
 | `OPENAI_API_KEY` | ✅ | 경남 코디세이에서 받은 API 키 | `sk-...` |
-| `OPENAI_BASE_URL` | △ | 코디세이에서 안내받은 API 주소. OpenAI 공식 키면 비움 | `https://.../v1` |
-| `OPENAI_MODEL` | ✅ | 사용할 모델 이름 | `gpt-4o-mini` |
+| `OPENAI_BASE_URL` | ✅ | 코디세이 API 주소 (OpenAI 공식 키면 비움) | `https://copa.codyssey.kr/v1` |
+| `OPENAI_MODEL` | ✅ | 사용할 모델 ID | `gpt-5-mini` |
 | `FIREBASE_SERVICE_ACCOUNT_JSON` | ✅* | 서비스 계정 키 JSON 내용 전체 (Render 추천) | `{"type":"service_account",...}` |
 | `FIREBASE_SERVICE_ACCOUNT_PATH` | ✅* | 또는 키 파일 경로 (로컬 추천) | `./firebase-key.json` |
 | `ALLOWED_ORIGINS` | ✅ | CORS 허용 프론트 주소 (쉼표 구분, 끝에 `/` 없이) | `https://study-mate.vercel.app` |
-| `OPENAI_MAX_TOKENS` | | 답변 최대 토큰 (기본 600) | `600` |
+| `OPENAI_MAX_TOKENS` | | 답변 최대 토큰 (기본 1500) | `1500` |
+| `CODYSSEY_SESSION_ID` | | 코디세이 사용량을 묶어 볼 세션 이름 | `study-mate` |
 | `CHAT_LIMIT_PER_MINUTE` | | IP당 1분 AI 호출 제한 (기본 10) | `10` |
 | `CHAT_LIMIT_PER_DAY` | | 서버 전체 하루 AI 호출 제한 (기본 200) | `200` |
+| `TOKEN_LIMIT` | | 이번 달 AI 토큰 사용 한도 (기본 100,000, 0=제한 없음) | `100000` |
 | `DAILY_GOAL_MINUTES` | | 하루 목표 공부 시간 기본값 (기본 120) | `120` |
 | `ALLOWED_ORIGIN_REGEX` | | Vercel 미리보기 주소 허용용 정규식 | `https://study-mate-.*\.vercel\.app` |
 
@@ -202,13 +205,19 @@ python -m http.server 5500
 
 ## 7. 경남 코디세이 API 키 사용법
 
-코디세이 키는 **OpenAI 방식(Chat Completions)** 으로 호출하므로 코드는 그대로 두고 `.env` 3줄만 채우면 됩니다.
+코디세이 공개 API는 **OpenAI 규격 채팅 엔드포인트**(`/v1/chat/completions`)를 제공하므로 코드는 그대로 두고 `.env` 만 채우면 됩니다.
 
 ```env
-OPENAI_API_KEY=코디세이에서_받은_키
-OPENAI_BASE_URL=코디세이에서_안내받은_주소      # 안내받은 주소가 없으면(=OpenAI 공식 키) 빈칸
-OPENAI_MODEL=안내받은_모델명                    # 예: gpt-4o-mini
+OPENAI_API_KEY=sk-cody-live-...            # 콘솔 > API 키 탭에서 발급
+OPENAI_BASE_URL=https://copa.codyssey.kr/v1 # 콘솔 > 문서 탭의 "Cursor/OpenAI Base URL"
+OPENAI_MODEL=gpt-5-mini                     # 문서 탭 모델 표의 OPENAI CHAT 모델 ID (차감 0.5배)
+OPENAI_MAX_TOKENS=1500                      # gpt-5 계열은 답하기 전 '생각'에도 토큰을 씀
+CODYSSEY_SESSION_ID=study-mate              # (선택) 사용량 탭에서 이 프로젝트 호출만 묶어 보기
 ```
+
+> ⚠️ `usr.codyssey.kr/.../public-api-console` 은 **콘솔 웹페이지 주소**이고 API 주소가 아닙니다. API 주소는 `https://copa.codyssey.kr/v1` 입니다.
+> 키는 `OPENAI_API_KEY` 에만 넣으세요. (Base URL 자리에 키를 넣으면 `getaddrinfo failed` 에러)
+> 잔여 토큰은 콘솔 상단 카드(월 한도)에서 확인할 수 있습니다. 매뉴얼 권장대로 에이전트 도구에 상시 연결하지 말고 이 프로젝트에서만 호출하세요.
 
 AI 호출은 `backend/core/ai_client.py` 한 곳에서만 합니다. 이 파일이 대신 처리해 주는 것들:
 
@@ -227,8 +236,8 @@ python -m scripts.check_setup --ai
 ```
 ① 환경 변수
    OPENAI_API_KEY   : sk-abc…(51자)
-   OPENAI_BASE_URL  : https://.../v1
-   OPENAI_MODEL     : gpt-4o-mini
+   OPENAI_BASE_URL  : https://copa.codyssey.kr/v1
+   OPENAI_MODEL     : gpt-5-mini
 ③ AI 채팅 호출
    ✅ 응답: 오늘도 한 걸음씩, 꾸준함이 결국 실력이 됩니다!
 ④ (보너스) 도구 호출(Function Calling) 지원 여부
@@ -272,6 +281,7 @@ python -m scripts.check_setup --ai
 | Method | Path | 설명 |
 |---|---|---|
 | `POST` | `/api/chat` | `{message, conversation_id?, use_tools?}` → `{reply, conversation_id, summary, tool_calls, notice}` |
+| `GET` | `/api/usage` | 이번 달 AI 토큰 사용량 / 한도 / 남은 양 |
 
 ### 상태
 
@@ -508,8 +518,9 @@ STUDY_MATE_API_URL=https://내-백엔드.onrender.com npx @modelcontextprotocol/
 - **Firestore 보안 규칙**: 서버(Admin SDK)만 접근하므로 Firestore 규칙은 "모두 거부"(프로덕션 모드) 그대로 둡니다.
 
 **과금/사용량 보호**
-- `OPENAI_MAX_TOKENS=600` 으로 답변 길이 제한
+- `OPENAI_MAX_TOKENS=1500` 으로 답변 길이 제한 (gpt-5-mini 는 차감 0.5배 모델)
 - AI 호출 횟수 제한: IP당 1분 10회, 서버 전체 하루 200회 (초과 시 429 + 안내 문구)
+- **월 토큰 한도 100,000개** (`TOKEN_LIMIT`): AI 응답의 사용 토큰을 Firestore `usage/{YYYY-MM}` 문서에 누적, 한도 도달 시 429. 사용량은 채팅 화면 요약 카드 아래와 `GET /api/usage` 에서 확인
 - 이전 대화는 최근 10개 메시지만 함께 전송 (`CHAT_HISTORY_LIMIT`)
 - 도구 호출은 질문당 최대 3라운드
 - `seed_data.py --days 30`, `--dry-run` 으로 작은 데이터부터 테스트
