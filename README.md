@@ -1,9 +1,6 @@
 # 📚 스터디 메이트 — 내 공부 기록을 아는 AI 코치
 https://study-mate-frontend-nu.vercel.app
 
-<img width="1444" height="880" alt="vercel 작업 사진" src="https://github.com/user-attachments/assets/0fd106a0-2a06-4e7d-852c-c4fa18e7157c" />
-
-
 > **AI Agent 개발: 나만의 AI 비서 구축** 과제 결과물
 > 하루 공부 시간(분)을 기록하면, AI가 **내 기록 요약을 보고** 맞춤형으로 답해주는 웹 서비스
 
@@ -200,6 +197,8 @@ python -m http.server 5500
 
 > 순수 HTML/JS는 환경 변수를 직접 읽지 못하므로, Vercel 빌드 때 `generate-config.js`가 `API_BASE_URL` 값으로 `config.js`를 만들어 줍니다.
 > **Vercel 환경 변수를 바꾼 뒤에는 꼭 Redeploy** 해야 반영됩니다.
+
+<img width="1444" height="880" alt="vercel 작업 사진" src="https://github.com/user-attachments/assets/47955307-b332-40ed-972d-722dc3827ece" />
 
 ### MCP 서버 (보너스)
 
