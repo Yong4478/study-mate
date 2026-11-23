@@ -180,13 +180,13 @@ python -m http.server 5500
 | `FIREBASE_SERVICE_ACCOUNT_JSON` | ✅* | 서비스 계정 키 JSON 내용 전체 (Render 추천) | `{"type":"service_account",...}` |
 | `FIREBASE_SERVICE_ACCOUNT_PATH` | ✅* | 또는 키 파일 경로 (로컬 추천) | `./firebase-key.json` |
 | `ALLOWED_ORIGINS` | ✅ | CORS 허용 프론트 주소 (쉼표 구분, 끝에 `/` 없이) | `https://study-mate.vercel.app` |
-| `OPENAI_MAX_TOKENS` | | 답변 최대 토큰 (기본 1500) | `1500` |
-| `CODYSSEY_SESSION_ID` | | 코디세이 사용량을 묶어 볼 세션 이름 | `study-mate` |
-| `CHAT_LIMIT_PER_MINUTE` | | IP당 1분 AI 호출 제한 (기본 10) | `10` |
-| `CHAT_LIMIT_PER_DAY` | | 서버 전체 하루 AI 호출 제한 (기본 200) | `200` |
-| `TOKEN_LIMIT` | | 이번 달 AI 토큰 사용 한도 (기본 100,000, 0=제한 없음) | `100000` |
-| `DAILY_GOAL_MINUTES` | | 하루 목표 공부 시간 기본값 (기본 120) | `120` |
-| `ALLOWED_ORIGIN_REGEX` | | Vercel 미리보기 주소 허용용 정규식 | `https://study-mate-.*\.vercel\.app` |
+| `OPENAI_MAX_TOKENS` | ✅ | 답변 최대 토큰 (기본 1500) | `1500` |
+| `CODYSSEY_SESSION_ID` | ✅ | 코디세이 사용량을 묶어 볼 세션 이름 | `study-mate` |
+| `CHAT_LIMIT_PER_MINUTE` | ✅ | IP당 1분 AI 호출 제한 (기본 10) | `10` |
+| `CHAT_LIMIT_PER_DAY` | ✅ | 서버 전체 하루 AI 호출 제한 (기본 200) | `200` |
+| `TOKEN_LIMIT` | ✅ | 이번 달 AI 토큰 사용 한도 (기본 100,000, 0=제한 없음) | `100000` |
+| `DAILY_GOAL_MINUTES` | ✅ | 하루 목표 공부 시간 기본값 (기본 120) | `120` |
+| `ALLOWED_ORIGIN_REGEX` | ✅ | Vercel 미리보기 주소 허용용 정규식 | `https://study-mate-.*\.vercel\.app` |
 
 \* Firebase 는 둘 중 하나만 설정합니다.
 
