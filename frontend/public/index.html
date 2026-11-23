@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>스터디 메이트 · 내 공부 기록을 아는 AI 코치</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>" />
+  <link rel="stylesheet" href="style.css" />
+  <!-- 다크 모드 깜빡임 방지: CSS 보다 먼저 테마를 정합니다 -->
+  <script>
+    (function () {
+      var saved = null;
+      try { saved = localStorage.getItem("theme"); } catch (e) {}
+      var dark = saved ? saved === "dark" : window.matchMedia("(prefers-color-scheme: dark)").matches;
+      document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
+    })();
+  </script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-icon" aria-hidden="true">📚</span>
+      <div>
+        <h1>스터디 메이트</h1>
+        <p class="brand-sub">내 공부 기록을 아는 AI 코치</p>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <span id="server-status" class="status-pill" data-state="pending">
+        <span class="dot" aria-hidden="true"></span><span class="label">서버 확인 중</span>
+      </span>
+      <button id="theme-toggle" class="icon-btn" type="button" aria-label="다크 모드 전환" title="다크 모드 전환">🌙</button>
+    </div>
+  </header>
+
+  <!-- Render 무료 플랜 콜드스타트 안내 -->
+  <div id="wake-banner" class="banner" hidden role="status">
+    <span class="spinner" aria-hidden="true"></span>
+    <span id="wake-text">무료 서버(Render)를 깨우는 중이에요. 처음 접속하면 최대 1분 정도 걸릴 수 있어요 ☕</span>
+    <button id="wake-retry" class="btn btn-small" type="button" hidden>다시 시도</button>
+  </div>
+
+  <nav class="tabs" role="tablist" aria-label="메뉴">
+    <button class="tab active" role="tab" data-tab="chat" aria-selected="true">💬 AI 채팅</button>
+    <button class="tab" role="tab" data-tab="data" aria-selected="false">📋 데이터 관리</button>
+    <button class="tab" role="tab" data-tab="stats" aria-selected="false">📈 통계·그래프</button>
+  </nav>
+
+  <main>
+    <!-- ───────────── 1. 채팅 탭 ───────────── -->
+    <section id="tab-chat" class="tab-panel chat-layout" role="tabpanel">
+      <aside class="sidebar">
+        <!-- 데이터 요약 카드 -->
+        <div class="card">
+          <div class="card-head">
+            <h2>📊 내 데이터 요약</h2>
+            <button id="summary-refresh" class="icon-btn small" type="button" title="새로고침" aria-label="요약 새로고침">↻</button>
+          </div>
+          <div id="summary-box" class="summary-box">
+            <p class="muted">요약을 불러오는 중…</p>
+          </div>
+          <p class="hint">이 요약이 AI의 시스템 프롬프트에 자동으로 들어가요.</p>
+        </div>
+
+        <!-- 대화 기록 -->
+        <div class="card grow">
+          <div class="card-head">
+            <h2>🗂 대화 기록</h2>
+            <button id="new-chat" class="btn btn-small" type="button">＋ 새 대화</button>
+          </div>
+          <ul id="conversation-list" class="conv-list">
+            <li class="muted">불러오는 중…</li>
+          </ul>
+        </div>
+      </aside>
+
+      <div class="card chat-panel">
+        <div class="chat-head">
+          <div>
+            <h2 id="chat-title">새 대화</h2>
+            <p class="hint" id="chat-sub">질문하면 대화가 자동으로 저장돼요.</p>
+          </div>
+          <label class="switch" title="AI가 필요할 때 기간별 기록·통계·이전 대화를 직접 조회해요">
+            <input type="checkbox" id="use-tools" />
+            <span class="switch-track" aria-hidden="true"></span>
+            <span>🔧 도구 호출 모드</span>
+          </label>
+        </div>
+
+        <div id="messages" class="messages" aria-live="polite">
+          <div class="welcome" id="welcome">
+            <p class="welcome-title">안녕하세요! 저는 당신의 공부 기록을 알고 있는 AI 코치예요 👋</p>
+            <p class="muted">아래 질문을 눌러보거나 직접 물어보세요.</p>
+            <div class="chips">
+              <button class="chip" type="button">이번 달 공부 얼마나 했어?</button>
+              <button class="chip" type="button">가장 공부를 많이 한 날은 언제야?</button>
+              <button class="chip" type="button">요즘 공부 추세가 어때?</button>
+              <button class="chip" type="button">무슨 요일에 공부를 제일 많이 해?</button>
+            </div>
+          </div>
+        </div>
+
+        <form id="chat-form" class="chat-form">
+          <textarea id="chat-input" rows="1" maxlength="1000" placeholder="공부 기록에 대해 물어보세요 (Shift+Enter 줄바꿈)" required></textarea>
+          <button id="chat-send" class="btn btn-primary" type="submit">보내기</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- ───────────── 2. 데이터 관리 탭 ───────────── -->
+    <section id="tab-data" class="tab-panel data-layout" role="tabpanel" hidden>
+      <div class="card">
+        <h2>➕ 공부 기록 추가</h2>
+        <form id="data-form" class="data-form">
+          <label>날짜
+            <input type="date" id="data-date" required />
+          </label>
+          <label>공부 시간(분)
+            <input type="number" id="data-value" min="0" max="1440" step="5" placeholder="예: 90" required />
+          </label>
+          <label class="wide">메모 (무엇을 공부했나요?)
+            <input type="text" id="data-memo" maxlength="100" placeholder="예: FastAPI 라우터 복습" />
+          </label>
+          <button class="btn btn-primary" type="submit">저장</button>
+        </form>
+        <p class="hint">하루에 기록 1개 · 같은 날짜는 목록에서 <b>수정</b>하세요.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h2>📋 기록 목록 <span id="data-count" class="count-badge">0</span></h2>
+          <div class="btn-row">
+            <button class="btn btn-small" type="button" data-export="csv">⬇ CSV</button>
+            <button class="btn btn-small" type="button" data-export="json">⬇ JSON</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr><th>날짜</th><th class="num">공부 시간</th><th>메모</th><th class="actions">관리</th></tr>
+            </thead>
+            <tbody id="data-tbody">
+              <tr><td colspan="4" class="muted">불러오는 중…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ───────────── 3. 통계·그래프 탭 (보너스) ───────────── -->
+    <section id="tab-stats" class="tab-panel" role="tabpanel" hidden>
+      <div class="filter-row">
+        <div class="segmented" role="group" aria-label="기간">
+          <button type="button" data-range="30">최근 30일</button>
+          <button type="button" data-range="60">60일</button>
+          <button type="button" data-range="90">90일</button>
+          <button type="button" data-range="all" class="active">전체</button>
+        </div>
+        <label class="goal-input">하루 목표
+          <input type="number" id="goal-minutes" min="10" max="1440" step="10" value="120" />분
+        </label>
+      </div>
+
+      <div class="tiles" id="stat-tiles"></div>
+
+      <div class="card">
+        <h2>하루 공부 시간과 7일 이동평균</h2>
+        <p class="hint">막대 = 하루 공부 시간 · 선 = 최근 7개 기록 평균(추세) · 가로선 = 목표</p>
+        <div class="legend">
+          <span><i class="key key-bar"></i>하루 공부 시간</span>
+          <span><i class="key key-line"></i>7일 이동평균</span>
+        </div>
+        <div id="daily-chart" class="chart" tabindex="0" aria-label="하루 공부 시간 그래프. 좌우 화살표로 날짜 이동"></div>
+      </div>
+
+      <div class="card">
+        <h2>요일별 평균 공부 시간</h2>
+        <div id="weekday-chart" class="chart chart-small"></div>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" role="status" hidden></div>
+  <div id="chart-tooltip" class="chart-tooltip" hidden></div>
+
+  <!-- config.js: API 서버 주소 (Vercel 배포 시 환경 변수로 자동 생성) -->
+  <script src="config.js"></script>
+  <script src="chart.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

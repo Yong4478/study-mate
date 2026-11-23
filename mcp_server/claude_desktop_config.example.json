@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "study-mate": {
+      "command": "python",
+      "args": ["C:/절대경로/study-mate/mcp_server/server.py"],
+      "env": {
+        "STUDY_MATE_API_URL": "https://내-백엔드.onrender.com"
+      }
+    }
+  }
+}
